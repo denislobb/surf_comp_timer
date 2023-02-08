@@ -21,18 +21,17 @@ class EventTimer(Frame):
         self._sound_path = str(app.base_path / config['AppSettings']['sound_path'])
         self.get_sound_files()
 
-        self.createTabs()
-        self.createWidgets()
-        self.createConfigWidgets()
+        self.set_event_timings()
+        endtime = self._event_duration
+        self._endtime = endtime
 
         self._alarm_id = None
         self._paused = False
         self._reset = False
 
-        self.set_event_timings()
-
-        endtime = self._event_duration
-        self._endtime = endtime
+        self.createTabs()
+        self.createWidgets()
+        self.createConfigWidgets()
 
     def get_sound_files(self):
         """Method to read sound files defined in config.ini."""
@@ -214,8 +213,8 @@ class EventTimer(Frame):
         widget_name.insert(0, f"{config['AppSettings'][config_field]}")
 
         time_button = Button(self.my_frame2, text=button_text, width=30, anchor="w",
-                                           command=lambda arg1=grid_row, arg2=config_field, arg3=widget_name:
-                                           self.change_duration(arg1, arg2, arg3))
+                             command=lambda arg1=grid_row, arg2=config_field, arg3=widget_name:
+                             self.change_duration(arg1, arg2, arg3))
         time_button.grid(row=grid_row, column=0, padx=5, pady=5)
 
         return
@@ -281,7 +280,6 @@ class App(Tk):
         super(App, self).__init__()
 
         self.base_path = Path(__file__).parent.absolute()
-
         self.title(config['AppSettings']["app_title"])
         self.geometry(config['AppSettings']["app_geometry"])
         self.iconbitmap(str(self.base_path / config['AppSettings']["app_iconbitmap"]))
@@ -289,16 +287,6 @@ class App(Tk):
 
 if __name__ == "__main__":
     playback = Playback()
-    # base_path = Path(__file__).parent.absolute()
-
-    # root = Tk()
-    # root.geometry(config['AppSettings']["app_geometry"])
-    # root.iconbitmap(str(base_path / config['AppSettings']["app_iconbitmap"]))
-    # root.title(config['AppSettings']["app_title"])
-    #
-    # app = MyApp(root)
-    # root.mainloop()
-
 
     app = App()
     EventTimer(app)
