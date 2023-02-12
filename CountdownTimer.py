@@ -26,7 +26,6 @@ class EventTimer(Frame):
 
         self._alarm_id = None
         self._paused = False
-        self._reset = False
 
         self.createTabs()
         self.createWidgets()
@@ -70,7 +69,7 @@ class EventTimer(Frame):
         startButton.grid(row=0, column=0, padx=20, pady=20)
 
         # Add Stop button
-        stopButton = Button(self.my_frame1, text="Stop Timer", font=("Helvetica", 16),
+        stopButton = Button(self.my_frame1, text="Stop/Pause Timer", font=("Helvetica", 16),
                             command=self.stopTime)
         stopButton.grid(row=0, column=1, padx=20, pady=20, ipadx=20)
 
@@ -144,12 +143,11 @@ class EventTimer(Frame):
     def resetTime(self):
         """Restore to last countdown value. """
         if self._alarm_id is not None:
+            self.stop_audio()
             self.master.after_cancel(self._alarm_id)
             self._alarm_id = None
             self._paused = False
-            self.countdown(int(self._event_duration))
-            self._paused = True
-            self._reset = True
+            self.display_timer(self._event_duration)
 
     def countdown(self, timeInSeconds, start=True):
         """Method that does the actual event countdown"""
@@ -158,7 +156,7 @@ class EventTimer(Frame):
         if self._paused:
             self._alarm_id = self.master.after(1000, self.countdown, timeInSeconds, False)
 
-        else:
+        else:   # not paused
             self.display_timer(timeInSeconds)
 
             if timeInSeconds == self._warningtime:
@@ -168,9 +166,6 @@ class EventTimer(Frame):
                 self._paused = True
 
             self._alarm_id = self.master.after(1000, self.countdown, timeInSeconds - 1, False)
-            if self._alarm_id and self._reset:
-                self.play_audio_thread(self._start_event_sound)
-                self._reset = False
 
     def play_audio_thread(self, track):
         """Method to Play the selected audio track in separate thread to avoid timing issues"""
