@@ -4,12 +4,26 @@ from threading import Thread
 from tkinter import *
 from tkinter import filedialog
 from tkinter import ttk
+import datetime
 
 from just_playback import Playback
+from string import Template
 
 import helper
 
 config = helper.read_config()
+
+
+class DeltaTemplate(Template):
+    delimiter = "%"
+
+
+def strfdelta(tdelta, fmt):
+    d = {"D": tdelta.days}
+    d["H"], rem = divmod(tdelta.seconds, 3600)
+    d["M"], d["S"] = divmod(rem, 60)
+    t = DeltaTemplate(fmt)
+    return t.substitute(**d)
 
 
 class EventTimer(Frame):
@@ -22,8 +36,9 @@ class EventTimer(Frame):
         self.get_sound_files()
 
         self.set_event_timings()
-        endtime = self._event_duration
-        self._endtime = endtime
+
+        self.start_time = datetime.datetime.now()
+        self.finish_time = self.start_time + datetime.timedelta(seconds=self._event_duration)
 
         self._alarm_id = None
         self._paused = False
@@ -50,8 +65,8 @@ class EventTimer(Frame):
         my_notebook = ttk.Notebook(self)
         my_notebook.pack()
 
-        self.my_frame1 = Frame(my_notebook, width=600, height=300)
-        self.my_frame2 = Frame(my_notebook, width=600, height=300)
+        self.my_frame1 = Frame(my_notebook, width=800, height=300)
+        self.my_frame2 = Frame(my_notebook, width=800, height=300)
 
         self.my_frame1.pack(fill="both", expand=1)
         self.my_frame2.pack(fill="both", expand=1)
@@ -108,6 +123,21 @@ class EventTimer(Frame):
         remaining_time_label = Label(self.my_frame1, textvariable=timer_variable, font=('Helvetica', 50))
         remaining_time_label.grid(row=1, column=0, columnspan=3, pady=20)
 
+        start_time = self.start_time
+        str_start_time = self.start_time.strftime('%H:%M:%S')
+        start_time_label = Label(self.my_frame1, text=str_start_time,
+                                 font=('Helvetica', 10))
+        start_time_label.grid(row=2, column=0, pady=20)
+
+        now_time = datetime.datetime.now()
+        str_now_time = now_time.strftime('%H:%M:%S')
+        finish_time_label = Label(self.my_frame1, text=str_now_time, font=('Helvetica', 10))
+        finish_time_label.grid(row=2, column=1, pady=20)
+
+        elapsed_time = strfdelta((now_time - start_time), '%H:%M:%S')
+        duration_label = Label(self.my_frame1, text=elapsed_time, font=('Helvetica', 10))
+        duration_label.grid(row=2, column=2, pady=20)
+
         return
 
     def startTime(self):
@@ -122,6 +152,7 @@ class EventTimer(Frame):
         if self._alarm_id is not None:
             self._paused = True
             self.stop_audio()
+            self.finish_time = datetime.datetime.now()
 
     def resetTime(self):
         """Restore to last countdown value. """
@@ -137,6 +168,7 @@ class EventTimer(Frame):
         """Method that does the actual event countdown"""
         if start:
             self._event_duration = timeInSeconds
+            self.start_time = datetime.datetime.now()
         if self._paused:
             self._alarm_id = self.master.after(1000, self.countdown, timeInSeconds, False)
 
@@ -148,6 +180,7 @@ class EventTimer(Frame):
             elif timeInSeconds == 0:
                 self.play_audio_thread(self._end_event_sound)
                 self._paused = True
+                self.finish_time = datetime.now()
 
             self._alarm_id = self.master.after(1000, self.countdown, timeInSeconds - 1, False)
             if self._alarm_id and self._reset:
