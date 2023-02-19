@@ -1,4 +1,3 @@
-import time
 from pathlib import Path
 from threading import Thread
 from tkinter import *
@@ -42,7 +41,6 @@ class EventTimer(Frame):
 
         self._alarm_id = None
         self._paused = False
-        self._reset = False
 
         self.createTabs()
         self.createWidgets()
@@ -71,6 +69,10 @@ class EventTimer(Frame):
         self.my_frame1.pack(fill="both", expand=1)
         self.my_frame2.pack(fill="both", expand=1)
 
+        # create sub frame for "play-sound" buttons
+        self.sound_frame = Frame(self.my_frame1, width=600, height=100)
+        self.sound_frame.grid(row=3, column=0, columnspan=4)
+
         my_notebook.add(self.my_frame1, text="App")
         my_notebook.add(self.my_frame2, text="Config")
 
@@ -82,30 +84,44 @@ class EventTimer(Frame):
         startButton.grid(row=0, column=0, padx=20, pady=20)
 
         # Add Stop button
-        stopButton = Button(self.my_frame1, text="Stop", font=("Helvetica", 16),
+        stopButton = Button(self.my_frame1, text="Stop/Pause Timer", font=("Helvetica", 16),
                             command=self.stopTime)
-        stopButton.grid(row=0, column=1, padx=20, pady=20)
+        stopButton.grid(row=0, column=1, padx=20, pady=20, ipadx=20)
 
         # Add Reset button
-        resetButton = Button(self.my_frame1, text="Reset", font=("Helvetica", 16),
+        resetButton = Button(self.my_frame1, text="Reset Timer", font=("Helvetica", 16),
                              command=self.resetTime)
-        resetButton.grid(row=0, column=2, padx=20, pady=20)
+        resetButton.grid(row=0, column=2, padx=20, pady=20, ipadx=20)
 
-        # Play Audio button
-        track = self._warning_sound
-        playAudioButton = Button(self.my_frame1, text="Play Audio", font=("Helvetica", 16),
-                                 command=lambda track=track: self.play_audio_thread(track))
-        playAudioButton.grid(row=3, column=0, padx=20, pady=20)
+        # Create "Play Sound" buttons
+        sounds = {"start"  : {"track"      : self._start_event_sound,
+                              "button_text": "Play\nStart-sound"},
+                  "warning": {"track"      : self._warning_sound,
+                              "button_text": "Play\nWarning-sound"},
+                  "ending" : {"track"      : self._end_event_sound,
+                              "button_text": "Play\nFinish-sound"}
+                  }
 
-        # Stop audio button
-        stopAudioButton = Button(self.my_frame1, text="Stop Audio", font=("Helvetica", 16),
+        column = 0
+        for v in sounds.values():
+            track = v.get("track")
+            button_text = v.get("button_text")
+            playSoundButton = Button(self.sound_frame, text=button_text, font=("Helvetica", 10),
+                                     command=lambda track=track: self.play_audio_thread(track))
+            playSoundButton.grid(row=0, column=column, padx=5, pady=10)
+            column += 1
+
+        # Stop sound button
+        stopSoundButton = Button(self.sound_frame, text="Stop\nAudio",
+                                 font=("Helvetica", 10), bg="indianred1",
                                  command=self.stop_audio)
-        stopAudioButton.grid(row=3, column=1, padx=20, pady=20)
+        stopSoundButton.grid(row=0, column=3, padx=5, pady=10, ipadx=20)
 
         # Quit button
-        quit_button = Button(self.my_frame1, text="Quit", font=("Helvetica", 16),
+        quit_button = Button(self.sound_frame, text="Quit", font=("Helvetica", 16),
+                             bg="red3", fg="white",
                              command=self.master.quit)
-        quit_button.grid(row=3, column=2, padx=20, pady=20)
+        quit_button.grid(row=0, column=4, padx=15, pady=10, ipadx=20)
 
         # Display timer  - row=1
         event_duration = int(config['AppSettings']['event_duration'])
@@ -120,8 +136,9 @@ class EventTimer(Frame):
         timeformat = f"{mins:02d}:{secs:02d}"
         timer_variable.set(timeformat)
 
-        remaining_time_label = Label(self.my_frame1, textvariable=timer_variable, font=('Helvetica', 50))
-        remaining_time_label.grid(row=1, column=0, columnspan=3, pady=20)
+        remaining_time_label = Label(self.my_frame1, textvariable=timer_variable,
+                                     font=('Helvetica', 80), fg="steelblue4")
+        remaining_time_label.grid(row=1, column=0, columnspan=4, pady=20)
 
         start_time = self.start_time
         str_start_time = self.start_time.strftime('%H:%M:%S')
@@ -157,12 +174,11 @@ class EventTimer(Frame):
     def resetTime(self):
         """Restore to last countdown value. """
         if self._alarm_id is not None:
+            self.stop_audio()
             self.master.after_cancel(self._alarm_id)
             self._alarm_id = None
             self._paused = False
-            self.countdown(int(self._event_duration))
-            self._paused = True
-            self._reset = True
+            self.display_timer(self._event_duration)
 
     def countdown(self, timeInSeconds, start=True):
         """Method that does the actual event countdown"""
@@ -172,7 +188,7 @@ class EventTimer(Frame):
         if self._paused:
             self._alarm_id = self.master.after(1000, self.countdown, timeInSeconds, False)
 
-        else:
+        else:   # not paused
             self.display_timer(timeInSeconds)
 
             if timeInSeconds == self._warningtime:
@@ -183,9 +199,6 @@ class EventTimer(Frame):
                 self.finish_time = datetime.now()
 
             self._alarm_id = self.master.after(1000, self.countdown, timeInSeconds - 1, False)
-            if self._alarm_id and self._reset:
-                self.play_audio_thread(self._start_event_sound)
-                self._reset = False
 
     def play_audio_thread(self, track):
         """Method to Play the selected audio track in separate thread to avoid timing issues"""
