@@ -43,6 +43,8 @@ class EventTimer(Frame):
         self._alarm_id = None
         self._paused = False
 
+        self.color = "steelblue4"
+
         self.createTabs()
         self.createWidgets()
         self.createConfigWidgets()
@@ -64,15 +66,21 @@ class EventTimer(Frame):
         my_notebook = ttk.Notebook(self)
         my_notebook.pack()
 
-        self.my_frame1 = Frame(my_notebook, width=800, height=300)
+        self.my_frame1 = Frame(my_notebook, width=800, height=500, padx=10)
         self.my_frame2 = Frame(my_notebook, width=800, height=300)
 
         self.my_frame1.pack(fill="both", expand=1)
         self.my_frame2.pack(fill="both", expand=1)
 
         # create sub frame for "play-sound" buttons
-        self.sound_frame = Frame(self.my_frame1, width=600, height=100)
-        self.sound_frame.grid(row=3, column=0, columnspan=4)
+        self.sound_frame = Frame(self.my_frame1, width=700, height=100)
+        self.sound_frame.grid(row=4, column=0, columnspan=4)
+
+        # create sub frame to display times
+        self.time_frame = Frame(self.my_frame1, width=600, height=100,
+                                highlightbackground="silver", highlightthickness=1,
+                                relief="ridge", padx=10)
+        self.time_frame.grid(row=5, column=0, columnspan=3, pady=10)
 
         my_notebook.add(self.my_frame1, text="App")
         my_notebook.add(self.my_frame2, text="Config")
@@ -125,69 +133,43 @@ class EventTimer(Frame):
         quit_button.grid(row=0, column=4, padx=15, pady=10, ipadx=20)
 
         # Display timer  - row=1
-        event_duration = int(config['AppSettings']['event_duration'])
+        event_duration = int(config['AppSettings']['event_duration'])  # in seconds
         self.display_timer(event_duration)
 
     def display_timer(self, remaining_time):
         """Method to display the passed time to the App screen"""
-        # Display remaining time on the App screen
-        timer_variable = StringVar()
 
-        mins, secs = divmod(remaining_time, 60)
-        timeformat = f"{mins:02d}:{secs:02d}"
-        timer_variable.set(timeformat)
-
-        remaining_time_label = Label(self.my_frame1, textvariable=timer_variable,
-                                     font=('Helvetica', 80), fg="steelblue4")
-        remaining_time_label.grid(row=1, column=0, columnspan=4, pady=20)
-
+        # display event start time
         start_time = self.start_time
         str_start_time = self.start_time.strftime('%H:%M:%S')
-        start_time_label = Label(self.my_frame1, text=str_start_time,
+        start_time_label = Label(self.time_frame, text="Event start-time: " + str_start_time,
                                  font=('Helvetica', 10))
-        start_time_label.grid(row=2, column=0, pady=20)
+        start_time_label.grid(row=0, column=0, padx= 40, pady=10)
 
-        now_time = datetime.datetime.now()
-        str_now_time = now_time.strftime('%H:%M:%S')
-        finish_time_label = Label(self.my_frame1, text=str_now_time, font=('Helvetica', 10))
-        finish_time_label.grid(row=2, column=1, pady=20)
+        # display schedule event finish time = start_time + event_duration
+        finish_time = self.finish_time
+        str_finish_time = finish_time.strftime('%H:%M:%S')
+        finish_time_label = Label(self.time_frame, text="Scheduled finish-time: " + str_finish_time,
+                                  font=('Helvetica', 10))
+        finish_time_label.grid(row=0, column=1, padx= 40, pady=10)
 
-        elapsed_time = strfdelta((now_time - start_time), '%H:%M:%S')
-        duration_label = Label(self.my_frame1, text=elapsed_time, font=('Helvetica', 10))
-        duration_label.grid(row=2, column=2, pady=20)
+        # display current time
+        time_now = datetime.datetime.now()
+        str_time_now = time_now.strftime('%H:%M:%S')
+        time_now_label = Label(self.time_frame, text="Event current-time: " + str_time_now,
+                               font=('Helvetica', 10))
+        time_now_label.grid(row=0, column=2, padx= 40, pady=10)
 
-        start_time = self.start_time
-        str_start_time = self.start_time.strftime('%H:%M:%S')
-        start_time_label = Label(self.my_frame1, text=str_start_time,
-                                 font=('Helvetica', 10))
-        start_time_label.grid(row=2, column=0, pady=20)
-
-        now_time = datetime.datetime.now()
-        str_now_time = now_time.strftime('%H:%M:%S')
-        finish_time_label = Label(self.my_frame1, text=str_now_time, font=('Helvetica', 10))
-        finish_time_label.grid(row=2, column=1, pady=20)
-
-        elapsed_time = strfdelta((now_time - start_time), '%H:%M:%S')
-        duration_label = Label(self.my_frame1, text=elapsed_time, font=('Helvetica', 10))
-        duration_label.grid(row=2, column=2, pady=20)
-        remaining_time_label = Label(self.my_frame1, textvariable=timer_variable,
-                                     font=('Helvetica', 80), fg="steelblue4")
-        remaining_time_label.grid(row=1, column=0, columnspan=4, pady=20)
-
-        start_time = self.start_time
-        str_start_time = self.start_time.strftime('%H:%M:%S')
-        start_time_label = Label(self.my_frame1, text=str_start_time,
-                                 font=('Helvetica', 10))
-        start_time_label.grid(row=2, column=0, pady=20)
-
-        now_time = datetime.datetime.now()
-        str_now_time = now_time.strftime('%H:%M:%S')
-        finish_time_label = Label(self.my_frame1, text=str_now_time, font=('Helvetica', 10))
-        finish_time_label.grid(row=2, column=1, pady=20)
-
-        elapsed_time = strfdelta((now_time - start_time), '%H:%M:%S')
-        duration_label = Label(self.my_frame1, text=elapsed_time, font=('Helvetica', 10))
-        duration_label.grid(row=2, column=2, pady=20)
+        # display time remaining in the event
+        remaining_time_variable = StringVar()
+        # time_remaining = (finish_time - time_now + datetime.timedelta(seconds=1)).seconds
+        hrs, rem = divmod(remaining_time, 3600)
+        mins, secs = divmod(rem, 60)
+        time_format = f"{hrs:02d}:{mins:02d}:{secs:02d}"
+        remaining_time_variable.set(time_format)
+        time_remaining_label = Label(self.my_frame1, textvariable=remaining_time_variable,
+                                     font=('Helvetica', 80), fg=self.color)
+        time_remaining_label.grid(row=1, column=0, columnspan=4, pady=20)
 
         return
 
@@ -206,16 +188,24 @@ class EventTimer(Frame):
 
     def resetTime(self):
         """Restore to last countdown value. """
+
+        self.start_time = datetime.datetime.now()
+        self.finish_time = self.start_time + datetime.timedelta(seconds=self._event_duration)
+        self.color = "steelblue4"
+
         if self._alarm_id is not None:
             self.master.after_cancel(self._alarm_id)
             self._alarm_id = None
             self._paused = False
-            self.display_timer(self._event_duration)
+            self.display_timer((self.finish_time - self.start_time).seconds)
 
     def countdown(self, timeInSeconds, start=True):
         """Method that does the actual event countdown"""
         if start:
             self._event_duration = timeInSeconds
+            self.start_time = datetime.datetime.now()
+            self.finish_time = self.start_time + datetime.timedelta(seconds=self._event_duration)
+
         if self._paused:
             self._alarm_id = self.master.after(1000, self.countdown, timeInSeconds, False)
 
@@ -224,11 +214,13 @@ class EventTimer(Frame):
 
             if timeInSeconds == self._warningtime:
                 self.play_audio_thread(self._warning_sound)
+                self.color = "red"
             elif timeInSeconds == 0:
                 self.play_audio_thread(self._end_event_sound)
                 self._paused = True
 
-            self._alarm_id = self.master.after(1000, self.countdown, timeInSeconds - 1, False)
+            self.time_remaining = (self.finish_time - datetime.datetime.now()).seconds
+            self._alarm_id = self.master.after(1000, self.countdown, self.time_remaining, False)
 
     def play_audio_thread(self, track):
         """Method to Play the selected audio track in separate thread to avoid timing issues"""
