@@ -170,6 +170,24 @@ class EventTimer(Frame):
         elapsed_time = strfdelta((now_time - start_time), '%H:%M:%S')
         duration_label = Label(self.my_frame1, text=elapsed_time, font=('Helvetica', 10))
         duration_label.grid(row=2, column=2, pady=20)
+        remaining_time_label = Label(self.my_frame1, textvariable=timer_variable,
+                                     font=('Helvetica', 80), fg="steelblue4")
+        remaining_time_label.grid(row=1, column=0, columnspan=4, pady=20)
+
+        start_time = self.start_time
+        str_start_time = self.start_time.strftime('%H:%M:%S')
+        start_time_label = Label(self.my_frame1, text=str_start_time,
+                                 font=('Helvetica', 10))
+        start_time_label.grid(row=2, column=0, pady=20)
+
+        now_time = datetime.datetime.now()
+        str_now_time = now_time.strftime('%H:%M:%S')
+        finish_time_label = Label(self.my_frame1, text=str_now_time, font=('Helvetica', 10))
+        finish_time_label.grid(row=2, column=1, pady=20)
+
+        elapsed_time = strfdelta((now_time - start_time), '%H:%M:%S')
+        duration_label = Label(self.my_frame1, text=elapsed_time, font=('Helvetica', 10))
+        duration_label.grid(row=2, column=2, pady=20)
 
         return
 
@@ -185,12 +203,10 @@ class EventTimer(Frame):
         if self._alarm_id is not None:
             self._paused = True
             self.stop_audio()
-            self.finish_time = datetime.datetime.now()
 
     def resetTime(self):
         """Restore to last countdown value. """
         if self._alarm_id is not None:
-            self.stop_audio()
             self.master.after_cancel(self._alarm_id)
             self._alarm_id = None
             self._paused = False
@@ -200,7 +216,6 @@ class EventTimer(Frame):
         """Method that does the actual event countdown"""
         if start:
             self._event_duration = timeInSeconds
-            self.start_time = datetime.datetime.now()
         if self._paused:
             self._alarm_id = self.master.after(1000, self.countdown, timeInSeconds, False)
 
@@ -212,7 +227,6 @@ class EventTimer(Frame):
             elif timeInSeconds == 0:
                 self.play_audio_thread(self._end_event_sound)
                 self._paused = True
-                self.finish_time = datetime.now()
 
             self._alarm_id = self.master.after(1000, self.countdown, timeInSeconds - 1, False)
 
