@@ -163,9 +163,14 @@ class EventTimer(Frame):
         # display time remaining in the event
         remaining_time_variable = StringVar()
         # time_remaining = (finish_time - time_now + datetime.timedelta(seconds=1)).seconds
-        hrs, rem = divmod(remaining_time, 3600)
-        mins, secs = divmod(rem, 60)
-        time_format = f"{hrs:02d}:{mins:02d}:{secs:02d}"
+        if self._event_duration >= 3600:
+            hrs, rem = divmod(remaining_time, 3600)
+            mins, secs = divmod(rem, 60)
+            time_format = f"{hrs:02d}:{mins:02d}:{secs:02d}"
+        else:
+            mins, secs = divmod(remaining_time, 60)
+            time_format = f"{mins:02d}:{secs:02d}"
+
         remaining_time_variable.set(time_format)
         time_remaining_label = Label(self.my_frame1, textvariable=remaining_time_variable,
                                      font=('Helvetica', 80), fg=self.color)
