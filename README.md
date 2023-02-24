@@ -1,12 +1,15 @@
 # surf_comp_timer
-Application was written to run as the countdown timer for a surf competition.
+This is a countdown timer app developed for running a surfing competition.
 
 The app is written in python 3 and tkinter.
 
-App dependencies are listed in the "requirements.txt" file ... there is only one dependency - "just_playback" which will need to be installed.
+Dependencies: "just_playback" - included in "requirements.txt". 
 
-The app starts an "event-start" sound file when the "Start" button is pressed and plays a "warning" sound when the time reaches the warning time and plays a "ending" sound to signify the end of the event.
+The app:  
+ . Plays an "event-start" sound file once the "Start" button is pressed, it then  
+ . Plays a "event-warning" sound file when the time reaches the warning time, and  
+ . Plays an "event-ending" sound file once the countdown reaches zero time remaining to signify the end of the event.
 
-Initial app configuration settings are stored in "config.ini" file. Mechansim to change some of these settings are provided within the app. All parameters can be changed by editing the "config.ini" file.
+Configuration settings are stored in the "config.ini" file. All parameters can be changed by editing the "config.ini" file. The app provides a mechanism to change a subset of these settings. 
 
-The app supports all types of sound files but they must be saved under the 'audio' folder.
+The app supports all types of sound files, but they must be saved within the 'audio' folder.
