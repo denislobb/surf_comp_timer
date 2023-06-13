@@ -1,9 +1,8 @@
-import time
 from pathlib import Path
 from threading import Thread
-from tkinter import *
-from tkinter import filedialog
-from tkinter import ttk
+from tkinter import Tk, Button, Label, Entry, Frame, StringVar
+from tkinter import filedialog, ttk
+
 import datetime
 
 from just_playback import Playback
@@ -140,37 +139,36 @@ class EventTimer(Frame):
         """Method to display the passed time to the App screen"""
 
         # display event start time
-        start_time = self.start_time
-        str_start_time = self.start_time.strftime('%H:%M:%S')
-        start_time_label = Label(self.time_frame, text="Event start-time: " + str_start_time,
-                                 font=('Helvetica', 10))
+        # start_time = self.start_time
+        start_time_label = Label(
+            self.time_frame,
+            text=f"Event start-time: {self.start_time.strftime('%H:%M:%S')}",
+            font=('Helvetica', 10)
+        )
         start_time_label.grid(row=0, column=0, padx= 40, pady=10)
 
         # display schedule event finish time = start_time + event_duration
-        finish_time = self.finish_time
-        str_finish_time = finish_time.strftime('%H:%M:%S')
-        finish_time_label = Label(self.time_frame, text="Scheduled finish-time: " + str_finish_time,
-                                  font=('Helvetica', 10))
+        # finish_time = self.finish_time
+        finish_time_label = Label(
+            self.time_frame,
+            text=f"Scheduled finish-time: {self.finish_time.strftime('%H:%M:%S')}",
+            font=('Helvetica', 10)
+        )
         finish_time_label.grid(row=0, column=1, padx= 40, pady=10)
+
 
         # display current time
         time_now = datetime.datetime.now()
-        str_time_now = time_now.strftime('%H:%M:%S')
-        time_now_label = Label(self.time_frame, text="Event current-time: " + str_time_now,
-                               font=('Helvetica', 10))
+        time_now_label = Label(
+            self.time_frame,
+            text=f"Event current-time: {time_now.strftime('%H:%M:%S')}",
+            font=('Helvetica', 10)
+        )
         time_now_label.grid(row=0, column=2, padx= 40, pady=10)
 
         # display time remaining in the event
         remaining_time_variable = StringVar()
-        # time_remaining = (finish_time - time_now + datetime.timedelta(seconds=1)).seconds
-        if self._event_duration >= 3600:
-            hrs, rem = divmod(remaining_time, 3600)
-            mins, secs = divmod(rem, 60)
-            time_format = f"{hrs:02d}:{mins:02d}:{secs:02d}"
-        else:
-            mins, secs = divmod(remaining_time, 60)
-            time_format = f"{mins:02d}:{secs:02d}"
-
+        time_format = strfdelta(datetime.timedelta(seconds=remaining_time), "%H:%M:%S")
         remaining_time_variable.set(time_format)
         time_remaining_label = Label(self.my_frame1, textvariable=remaining_time_variable,
                                      font=('Helvetica', 80), fg=self.color)
@@ -181,13 +179,13 @@ class EventTimer(Frame):
     def startTime(self):
         """ Resume """
         self._paused = False
-        if self._alarm_id is None:
+        if not self._alarm_id:
             self.countdown(self._event_duration)
             self.play_audio_thread(self._start_event_sound)
 
     def stopTime(self):
         """ Pause """
-        if self._alarm_id is not None:
+        if self._alarm_id:
             self._paused = True
             self.stop_audio()
 
@@ -232,8 +230,11 @@ class EventTimer(Frame):
         playback.load_file(track)
         playback.loop_at_end(False)
 
-        thread1 = Thread(target=playback.play())
-        thread1.start()
+        # thread1 = Thread(target=playback.play())
+        # thread1.start()
+
+        playback.play()
+
 
     def stop_audio(self):
         """Method to stop playing the audio"""
@@ -342,10 +343,6 @@ class EventTimer(Frame):
         """Method to display the selected sound files"""
         widget.delete(0, "end")
         widget.insert(0, f"{config['AppSettings'][config_field]}")
-
-    def quit(self):
-        """Method to Quit the application."""
-        self._interrupt = True
 
 
 class App(Tk):
