@@ -2,11 +2,11 @@ import configparser
 
 
 # Method to read config file settings
-def read_config():
+def read_config(config_file):
     config_obj = configparser.ConfigParser()
     # with open('config.ini', 'r') as file:
     #     config = file.read()
-    config_obj.read('config.ini')
+    config_obj.read(config_file)
     return config_obj
 
 
