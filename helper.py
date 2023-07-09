@@ -17,3 +17,9 @@ def save_config(config_file, config_obj, section, field, value):
         config_obj.write(file_obj)
 
     return
+
+
+def new_save_config(config_file, config_obj):
+    with open(config_file, "w") as file_obj:
+        config_obj.write(file_obj)
+    return

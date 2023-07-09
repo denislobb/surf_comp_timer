@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import datetime
 import tkinter
 from pathlib import Path
@@ -335,6 +337,7 @@ class EventTimer(Frame):
         widget.delete(0, "end")
         widget.insert(0, f"{config['AppSettings'][config_field]}")
 
+
 class App(Tk):
     def __init__(self):
         super(App, self).__init__()
@@ -343,6 +346,7 @@ class App(Tk):
         self.title(config['AppSettings']["app_title"])
         self.geometry(config['AppSettings']["app_geometry"])
         self.iconbitmap(str(self.base_path / config['AppSettings']["app_iconbitmap"]))
+
 
 if __name__ == "__main__":
     playback = Playback()

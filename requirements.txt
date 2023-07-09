@@ -1,1 +1,3 @@
 just_playback~=0.1.7
+
+tkmacosx~=1.0.5

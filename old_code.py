@@ -8,15 +8,15 @@
 
     ################
         self.config_file = "config.ini"
-        self._sound_path = str(app.base_path / config['AppSettings']['sound_path'])
+        self.sound_path = str(app.base_path / config['AppSettings']['sound_path'])
         self.get_sound_files()
 
         self.set_event_timings()
 
         self.start_time = datetime.datetime.now()
-        self.finish_time = self.start_time + datetime.timedelta(seconds=self._event_duration)
+        self.finish_time = self.start_time + datetime.timedelta(seconds=self.event_duration)
 
-        self._alarm_id = None
+        self.alarm_id = None
         self._paused = False
 
         self.color = "steelblue4"
@@ -27,13 +27,13 @@
 
     def get_sound_files(self):
         """Method to read sound files defined in config.ini."""
-        self._start_event_sound = str(Path(self._sound_path, config["AppSettings"]["starting_sound"]))
-        self._warning_sound = str(Path(self._sound_path, config["AppSettings"]["warning_sound"]))
-        self._end_event_sound = str(Path(self._sound_path, config["AppSettings"]["ending_sound"]))
+        self.start_event_sound = str(Path(self.sound_path, config["AppSettings"]["starting_sound"]))
+        self.warning_sound = str(Path(self.sound_path, config["AppSettings"]["warning_sound"]))
+        self.end_event_sound = str(Path(self.sound_path, config["AppSettings"]["ending_sound"]))
 
     def set_event_timings(self):
         """Method to read app timings from config.ini file"""
-        self._event_duration = int(config['AppSettings']['event_duration'])
+        self.event_duration = int(config['AppSettings']['event_duration'])
         self._warningtime = int(config['AppSettings']['warning_time'])
 
     def createTabs(self):
@@ -42,18 +42,18 @@
         my_notebook = ttk.Notebook(self)
         my_notebook.pack()
 
-        self.my_frame1 = Frame(my_notebook, width=800, height=500, padx=10)
-        self.my_frame2 = Frame(my_notebook, width=800, height=300)
+        self.app_frame = Frame(my_notebook, width=800, height=500, padx=10)
+        self.settings_frame = Frame(my_notebook, width=800, height=300)
 
-        self.my_frame1.pack(fill="both", expand=1)
-        self.my_frame2.pack(fill="both", expand=1)
+        self.app_frame.pack(fill="both", expand=1)
+        self.settings_frame.pack(fill="both", expand=1)
 
         # create sub frame for "play-sound" buttons
-        self.sound_frame = Frame(self.my_frame1, width=700, height=100)
+        self.sound_frame = Frame(self.app_frame, width=700, height=100)
         self.sound_frame.grid(row=4, column=0, columnspan=4)
 
         # create sub frame to display times
-        self.time_frame = Frame(self.my_frame1, width=600, height=100,
+        self.time_frame = Frame(self.app_frame, width=600, height=100,
                                 highlightbackground="silver", highlightthickness=1,
                                 relief="ridge", padx=10)
         self.time_frame.grid(row=5, column=0, columnspan=3, pady=10)
@@ -61,32 +61,32 @@
         self.remaining_time_label = Label(self)
         self.remaining_time_label.pack()
 
-        my_notebook.add(self.my_frame1, text="App")
-        my_notebook.add(self.my_frame2, text="Config")
+        my_notebook.add(self.app_frame, text="App")
+        my_notebook.add(self.settings_frame, text="Config")
 
     def createWidgets(self):
         """Method to create the App buttons and display remaining event-time"""
         # Add start button
-        startButton = Button(self.my_frame1, text="Start Timer", font=("Helvetica", 16),
+        startButton = Button(self.app_frame, text="Start Timer", font=("Helvetica", 16),
                              command=self.startTime)
         startButton.grid(row=0, column=0, padx=20, pady=20)
 
         # Add Stop button
-        stopButton = Button(self.my_frame1, text="Stop/Pause Timer", font=("Helvetica", 16),
+        stopButton = Button(self.app_frame, text="Stop/Pause Timer", font=("Helvetica", 16),
                             command=self.stopTime)
         stopButton.grid(row=0, column=1, padx=20, pady=20, ipadx=20)
 
         # Add Reset button
-        resetButton = Button(self.my_frame1, text="Reset Timer", font=("Helvetica", 16),
+        resetButton = Button(self.app_frame, text="Reset Timer", font=("Helvetica", 16),
                              command=self.resetTime)
         resetButton.grid(row=0, column=2, padx=20, pady=20, ipadx=20)
 
         # Create "Play Sound" buttons
-        sounds = {"start"  : {"track"      : self._start_event_sound,
+        sounds = {"start"  : {"track"      : self.start_event_sound,
                               "button_text": "Play\nStart-sound"},
-                  "warning": {"track"      : self._warning_sound,
+                  "warning": {"track"      : self.warning_sound,
                               "button_text": "Play\nWarning-sound"},
-                  "ending" : {"track"      : self._end_event_sound,
+                  "ending" : {"track"      : self.end_event_sound,
                               "button_text": "Play\nFinish-sound"}
                   }
 
@@ -159,18 +159,18 @@
             if self.timer_running:
                 return (self.finish_time - datetime.datetime.now()).seconds
             else:
-                return self._event_duration
+                return self.event_duration
 
     def startTime(self):
         """ Resume """
         self._paused = False
-        if not self._alarm_id:
-            self.countdown(self._event_duration)
-            self.play_audio_thread(self._start_event_sound)
+        if not self.alarm_id:
+            self.countdown(self.event_duration)
+            self.play_audio_thread(self.start_event_sound)
 
     def stopTime(self):
         """ Pause """
-        if self._alarm_id:
+        if self.alarm_id:
             self._paused = True
             self.stop_audio()
 
@@ -178,37 +178,37 @@
         """Restore to last countdown value. """
 
         self.start_time = datetime.datetime.now()
-        self.finish_time = self.start_time + datetime.timedelta(seconds=self._event_duration)
+        self.finish_time = self.start_time + datetime.timedelta(seconds=self.event_duration)
         self.color = "steelblue4"
 
-        if self._alarm_id is not None:
-            self.master.after_cancel(self._alarm_id)
-            self._alarm_id = None
+        if self.alarm_id is not None:
+            self.master.after_cancel(self.alarm_id)
+            self.alarm_id = None
             self._paused = False
             self.display_timer((self.finish_time - self.start_time).seconds)
 
     def countdown(self, timeInSeconds, start=True):
         """Method that does the actual event countdown"""
         if start:
-            self._event_duration = timeInSeconds
+            self.event_duration = timeInSeconds
             self.start_time = datetime.datetime.now()
-            self.finish_time = self.start_time + datetime.timedelta(seconds=self._event_duration)
+            self.finish_time = self.start_time + datetime.timedelta(seconds=self.event_duration)
 
         if self._paused:
-            self._alarm_id = self.master.after(1000, self.countdown, timeInSeconds, False)
+            self.alarm_id = self.master.after(1000, self.countdown, timeInSeconds, False)
 
         else:   # not paused
             self.display_timer(timeInSeconds)
 
             if timeInSeconds == self._warningtime:
-                self.play_audio_thread(self._warning_sound)
+                self.play_audio_thread(self.warning_sound)
                 self.color = "red"
             elif timeInSeconds == 0:
-                self.play_audio_thread(self._end_event_sound)
+                self.play_audio_thread(self.end_event_sound)
                 self._paused = True
 
             self.time_remaining = (self.finish_time - datetime.datetime.now()).seconds
-            self._alarm_id = self.master.after(1000, self.countdown, self.time_remaining, False)
+            self.alarm_id = self.master.after(1000, self.countdown, self.time_remaining, False)
 
     def play_audio_thread(self, track):
         """Method to Play the selected audio track in separate thread to avoid timing issues"""
@@ -267,11 +267,11 @@
         """Method to change the event-duration and warning-time"""
         # change event timings
         # Display current setting
-        widget_name = Entry(self.my_frame2, width=30)
+        widget_name = Entry(self.settings_frame, width=30)
         widget_name.grid(row=grid_row, column=1, padx=5, pady=5)
         widget_name.insert(0, f"{config['AppSettings'][config_field]}")
 
-        time_button = Button(self.my_frame2, text=button_text, width=30, anchor="w",
+        time_button = Button(self.settings_frame, text=button_text, width=30, anchor="w",
                              command=lambda arg1=grid_row, arg2=config_field, arg3=widget_name:
                              self.change_duration(arg1, arg2, arg3))
         time_button.grid(row=grid_row, column=0, padx=5, pady=5)
@@ -284,7 +284,7 @@
         # Update configuration file
         helper.save_config("config.ini", config, "AppSettings", config_field, duration)
         # Display changed value
-        widget_name = Label(self.my_frame2, text=f"Value changed to {config['AppSettings'][config_field]}",
+        widget_name = Label(self.settings_frame, text=f"Value changed to {config['AppSettings'][config_field]}",
                             anchor="w", width=30)
         widget_name.grid(row=grid_row, column=2, padx=5, pady=5)
         # reset timings in self
@@ -297,11 +297,11 @@
         """Method to change the "sound" files"""
 
         # Display current setting
-        widget_name = Entry(self.my_frame2, width=30)
+        widget_name = Entry(self.settings_frame, width=30)
         widget_name.grid(row=grid_row, column=1, padx=5, pady=5)
         widget_name.insert(0, f"{config['AppSettings'][config_field]}")
 
-        change_sound_button = Button(self.my_frame2, text=button_text, width=30, anchor="w",
+        change_sound_button = Button(self.settings_frame, text=button_text, width=30, anchor="w",
                                      command=lambda arg1=config_field, widget=widget_name:
                                      self.get_new_sound_file(arg1, widget)
                                      )
@@ -310,7 +310,7 @@
     def get_new_sound_file(self, config_field, widget):
         """Method to select and save the selected sound file"""
         filename = filedialog.askopenfilename(
-                initialdir=str(self._sound_path),
+                initialdir=str(self.sound_path),
                 title="Select Sound File",
                 filetypes=(("Sound Files", "*.mp3"), ("All Files", "*.*"),)
         )
